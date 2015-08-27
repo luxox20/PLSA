@@ -149,7 +149,7 @@ void Plsa::M_step(MatrixXd &data)
     C=Pd_z.colwise().sum(); //suma de columnas[vector(1XN)]
     Pd_z=Pd_z*(Temp.cwiseQuotient(C).asDiagonal());
 
-    C=Pw_z.colwise().sum();
+    C=Pw_z.colwise().sum(); //
     Pw_z=Pw_z*(Temp.cwiseQuotient(C).asDiagonal());
 
     //C=Pw_z.colwise;
