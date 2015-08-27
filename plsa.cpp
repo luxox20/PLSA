@@ -1,35 +1,19 @@
 #include "plsa.h"
 /*
-% Notation:
-% X ... (M x Ni) term-document matrix (observed data)
-%       X(i,j) stores number of occurrences of word i in document j
-%
-% M  ... number of words
-% Ni ... number of images
-% K  ... number of topics
-%
-% Fixed_Pw_z ... fixed Pw_z density (for recognition only)
-%                leave empty in learning
-%                N.B. Must be of size m by K
-%
-% Li   ... likelihood for each iteration
-% Pz   ... P(z)
-% Pd_z ... P(d|z)
-% Pw_z ... P(w|z) corresponds to beta parameter in LDA
-%
-% Pz_wd ... P(z|w,d) posterior on z
+
 */
 
 Plsa::Plsa(){
 }
 
-void Plsa::plsa_init(Eigen::MatrixXd& data,int topics,int Max_Iterations, int tolerance)
+void Plsa::plsa_init(Eigen::MatrixXd& data,int topics,int Max_Iterations, double tolerance)
 {     data.transposeInPlace();
       //srand((unsigned int) time(0));
       M=data.rows();  // number of visual words
       Ni=data.cols();  // number of images
       cout << M<<"X"<<Ni<<" "<<endl;
       K=topics;
+      map<int,double> table_likehood;
       //incializacion//
       P_z=Eigen::VectorXd::Ones(K)/K; // P(z);
       Pd_z=Eigen::MatrixXd::Random(Ni,K); // P(d|z) Matrix de tamaño NixK
@@ -70,12 +54,26 @@ void Plsa::plsa_init(Eigen::MatrixXd& data,int topics,int Max_Iterations, int to
         }
         //cout<<endl;
       }*/
-
+    for (int i=0;i<Max_Iterations;i++)
+    {
       E_step();
       //cout<<data.cols()<<endl;
       //cout<<Pz_wd[1].cols();
       M_step(data);
       //temp=Pd_z.colwise().sum();
+     table_likehood[i]=loglikehood(data);
+
+      double dli=0;
+      if (i>0)
+      {
+        dli=table_likehood[i]-table_likehood[i-1];
+        if (dli< tolerance)
+        {
+          cout<<" finalizo en: "<<i<<endl;
+          break;
+        }
+      }
+    }
 
 
 
@@ -142,15 +140,23 @@ void Plsa::M_step(MatrixXd &data)
     //normalize
     RowVectorXd Temp;
     RowVectorXd C;
-    Temp=RowVectorXd::Ones(K); // vector of K with ones
+    VectorXd E;
+    VectorXd T;
+    Temp=RowVectorXd::Ones(K);
+    T=VectorXd::Ones(K); // vector of K with ones
     P_z=Pd_z.colwise().sum();
     cout<<P_z;
 
     C=Pd_z.colwise().sum(); //suma de columnas[vector(1XN)]
-    Pd_z=Pd_z*(Temp.cwiseQuotient(C).asDiagonal());
+    Temp=Temp.cwiseQuotient(C);
+    Pd_z=Pd_z*(Temp.asDiagonal());
 
     C=Pw_z.colwise().sum(); //
-    Pw_z=Pw_z*(Temp.cwiseQuotient(C).asDiagonal());
+    Temp=Temp.cwiseQuotient(C);
+    Pw_z=Pw_z*(Temp.asDiagonal());
+
+    E=P_z.rowwise().sum();
+    P_z=P_z.cwiseProduct(T.cwiseQuotient(E));
 
     //C=Pw_z.colwise;
     //for (int j=0;j<K;j++)
@@ -166,4 +172,28 @@ void Plsa::get_size()
 void Plsa::Normalize()
 {
 
+}
+
+double Plsa::loglikehood(MatrixXd &data)
+{
+  MatrixXd Pw_d=MatrixXd::Zero(M,Ni);
+  double likehood=0;
+  for (int i=0;i<K;i++)
+  {
+    Pw_d+=((Pw_z.col(i)*Pd_z.col(i).transpose())*P_z(i));
+  }
+
+  likehood=logeps(Pw_d).cwiseProduct(data).sum();
+
+  cout<<likehood<<endl;
+
+  return likehood;
+
+}
+
+MatrixXd Plsa::logeps(MatrixXd mat){
+	for(int i=0;i<mat.rows();i++)
+		for(int j=0;j<mat.cols();j++)
+			mat(i,j)=log(mat(i,j)+std::numeric_limits<double>::epsilon());
+	return mat;
 }

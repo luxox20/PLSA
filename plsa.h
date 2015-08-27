@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <map>
+#include <limits>
+#include <cmath>
 
 using namespace std;
 using namespace Eigen;
@@ -13,7 +15,7 @@ class Plsa
 {
   public:
           Plsa();
-          void plsa_init(MatrixXd& data,int topics,int Max_Iterations, int tolerance);
+          void plsa_init(MatrixXd& data,int topics,int Max_Iterations, double tolerance);
           //void train();
           void test();
   private:
@@ -29,6 +31,8 @@ class Plsa
           void E_step();
           void M_step(MatrixXd &data);
           void Normalize();
+          double loglikehood(MatrixXd &data);
+          MatrixXd logeps(MatrixXd mat);
 
 };
 #endif
