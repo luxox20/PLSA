@@ -15,10 +15,13 @@ class Plsa
 {
   public:
           Plsa();
-          void plsa_init(MatrixXd& data,int topics,int Max_Iterations, double tolerance);
-          //void train();
-          void test();
+          void plsa_Train(MatrixXd& data,int topics,int Max_Iterations, double tolerance);
+          void plsa_test(MatrixXd& data, int topics, int Max_Iterations, double tolerance, MatrixXd &Fixed_Pw_z);
+          MatrixXd GetPw_z();
+          MatrixXd GetPd_z();
+          VectorXd GetP_z();
   private:
+          //variables
           int M;
           int Ni;
           int K;
@@ -30,7 +33,7 @@ class Plsa
           void get_size();
           void E_step();
           void M_step(MatrixXd &data);
-          void Normalize();
+          void Normalize(MatrixXd &Mat);
           double loglikehood(MatrixXd &data);
           MatrixXd logeps(MatrixXd mat);
 

@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
       ReadFiles(data_train,histogram_train);
       cout<<data_train.rows()<<endl;
       //ReadFiles(data_test,histogram_test);
-      p.plsa_init(data_train,topics,Max_Iterations,tolerance);
+      p.plsa_Train(data_train,topics,Max_Iterations,tolerance);
       //cout<< data_train(1,1)<<endl ;
       //Eigen::MatrixXd pxy;
     }
